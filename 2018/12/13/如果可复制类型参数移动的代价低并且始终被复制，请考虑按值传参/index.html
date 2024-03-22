@@ -18,12 +18,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.xiwenjiang.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="首先声明：下面的“复制”和“拷贝”词语是严格区分的。“复制”指的是传统意义上的复制，“对于对象的复制”就是指对某个对象进行复制构造或者复制赋值。而对于“拷贝”，指的是包括“复制”和“移动”在内的操作。例如将a拷贝到b，这只是强调b和之前的a一模一样，但不保证a还存在。这一点在《Effective modern C++》英文版中的286页注释有说明。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参">
-<meta property="og:url" content="https://www.jiangxiwen.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/index.html">
+<meta property="og:url" content="https://blog.xiwenjiang.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/index.html">
 <meta property="og:site_name" content="CrazySpy&#39;s blog">
 <meta property="og:description" content="首先声明：下面的“复制”和“拷贝”词语是严格区分的。“复制”指的是传统意义上的复制，“对于对象的复制”就是指对某个对象进行复制构造或者复制赋值。而对于“拷贝”，指的是包括“复制”和“移动”在内的操作。例如将a拷贝到b，这只是强调b和之前的a一模一样，但不保证a还存在。这一点在《Effective modern C++》英文版中的286页注释有说明。">
 <meta property="og:locale" content="zh_CN">
@@ -33,11 +33,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.jiangxiwen.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/">
+<link rel="canonical" href="https://blog.xiwenjiang.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/","path":"2018/12/13/如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参/","title":"如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.xiwenjiang.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/","path":"2018/12/13/如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参/","title":"如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>如果可复制类型参数移动的代价低并且始终被复制，请考虑按值传参 | CrazySpy's blog</title>
@@ -187,7 +187,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/">
+    <link itemprop="mainEntityOfPage" href="https://blog.xiwenjiang.me/2018/12/13/%E5%A6%82%E6%9E%9C%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E7%A7%BB%E5%8A%A8%E7%9A%84%E4%BB%A3%E4%BB%B7%E4%BD%8E%E5%B9%B6%E4%B8%94%E5%A7%8B%E7%BB%88%E8%A2%AB%E5%A4%8D%E5%88%B6%EF%BC%8C%E8%AF%B7%E8%80%83%E8%99%91%E6%8C%89%E5%80%BC%E4%BC%A0%E5%8F%82/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">

@@ -18,12 +18,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.xiwenjiang.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="移动语义是C++11中的重要功能。移动操作有着和移动指针一样低的代价，对于临时对象的复制操作很高效，以致于临时对象的复制成为了一种优化级别的操作。移动语义不光如此，它还要求编译器在合适情况下自动用移动替换复制。如果你将C++98代码使用C++11编译器编译，你很有可能会发现它运行得更快了。 让我们先从许多不支持移动语义的类型开始。C++11标准库重构了C++98的标准库，为移动操作比复制操作快的类">
 <meta property="og:type" content="article">
 <meta property="og:title" content="要假设移动操作是不存在的、高代价的以及没有被使用的">
-<meta property="og:url" content="https://www.jiangxiwen.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/index.html">
+<meta property="og:url" content="https://blog.xiwenjiang.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/index.html">
 <meta property="og:site_name" content="CrazySpy&#39;s blog">
 <meta property="og:description" content="移动语义是C++11中的重要功能。移动操作有着和移动指针一样低的代价，对于临时对象的复制操作很高效，以致于临时对象的复制成为了一种优化级别的操作。移动语义不光如此，它还要求编译器在合适情况下自动用移动替换复制。如果你将C++98代码使用C++11编译器编译，你很有可能会发现它运行得更快了。 让我们先从许多不支持移动语义的类型开始。C++11标准库重构了C++98的标准库，为移动操作比复制操作快的类">
 <meta property="og:locale" content="zh_CN">
@@ -33,11 +33,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.jiangxiwen.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/">
+<link rel="canonical" href="https://blog.xiwenjiang.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/","path":"2018/10/30/要假设移动操作是不存在的、高代价的以及没有被使用的/","title":"要假设移动操作是不存在的、高代价的以及没有被使用的"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.xiwenjiang.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/","path":"2018/10/30/要假设移动操作是不存在的、高代价的以及没有被使用的/","title":"要假设移动操作是不存在的、高代价的以及没有被使用的"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>要假设移动操作是不存在的、高代价的以及没有被使用的 | CrazySpy's blog</title>
@@ -187,7 +187,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/">
+    <link itemprop="mainEntityOfPage" href="https://blog.xiwenjiang.me/2018/10/30/%E8%A6%81%E5%81%87%E8%AE%BE%E7%A7%BB%E5%8A%A8%E6%93%8D%E4%BD%9C%E6%98%AF%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E3%80%81%E9%AB%98%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BB%A5%E5%8F%8A%E6%B2%A1%E6%9C%89%E8%A2%AB%E4%BD%BF%E7%94%A8%E7%9A%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">

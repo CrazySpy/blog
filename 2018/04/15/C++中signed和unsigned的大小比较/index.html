@@ -18,12 +18,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.xiwenjiang.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="有这样的一段代码，请说出其运行结果： 123456789101112#include &lt;iostream&gt;;using namespace std;int main()&amp;#123;    int a &#x3D; -1;    if (0x80000000 &gt; a)        cout &gt;&gt; &quot;hello\n&quot;;    else        cout">
 <meta property="og:type" content="article">
 <meta property="og:title" content="C++中signed和unsigned的大小比较">
-<meta property="og:url" content="https://www.jiangxiwen.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/index.html">
+<meta property="og:url" content="https://blog.xiwenjiang.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/index.html">
 <meta property="og:site_name" content="CrazySpy&#39;s blog">
 <meta property="og:description" content="有这样的一段代码，请说出其运行结果： 123456789101112#include &lt;iostream&gt;;using namespace std;int main()&amp;#123;    int a &#x3D; -1;    if (0x80000000 &gt; a)        cout &gt;&gt; &quot;hello\n&quot;;    else        cout">
 <meta property="og:locale" content="zh_CN">
@@ -33,11 +33,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.jiangxiwen.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/">
+<link rel="canonical" href="https://blog.xiwenjiang.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/","path":"2018/04/15/C++中signed和unsigned的大小比较/","title":"C++中signed和unsigned的大小比较"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.xiwenjiang.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/","path":"2018/04/15/C++中signed和unsigned的大小比较/","title":"C++中signed和unsigned的大小比较"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>C++中signed和unsigned的大小比较 | CrazySpy's blog</title>
@@ -187,7 +187,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/">
+    <link itemprop="mainEntityOfPage" href="https://blog.xiwenjiang.me/2018/04/15/C++%E4%B8%ADsigned%E5%92%8Cunsigned%E7%9A%84%E5%A4%A7%E5%B0%8F%E6%AF%94%E8%BE%83/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">

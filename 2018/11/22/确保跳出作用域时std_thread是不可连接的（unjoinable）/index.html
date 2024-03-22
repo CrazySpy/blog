@@ -18,12 +18,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.xiwenjiang.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="每个std::thread对象都有两种状态，可连接(joinable)和不可连接(unjoinable)。可连接的std::thread对象与可以被执行或正在执行的底层异步线程相通信。当一个std::thread对象对应的底层线程被阻塞或者正在等待被调度时也是可连接的。例如：正在等待底层线程执行完毕的std::thread也被看做是可连接的。 不可连接的std::thread的情况包括以下几种：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="确保跳出作用域时std::thread是不可连接的（unjoinable）">
-<meta property="og:url" content="https://www.jiangxiwen.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/index.html">
+<meta property="og:url" content="https://blog.xiwenjiang.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/index.html">
 <meta property="og:site_name" content="CrazySpy&#39;s blog">
 <meta property="og:description" content="每个std::thread对象都有两种状态，可连接(joinable)和不可连接(unjoinable)。可连接的std::thread对象与可以被执行或正在执行的底层异步线程相通信。当一个std::thread对象对应的底层线程被阻塞或者正在等待被调度时也是可连接的。例如：正在等待底层线程执行完毕的std::thread也被看做是可连接的。 不可连接的std::thread的情况包括以下几种：">
 <meta property="og:locale" content="zh_CN">
@@ -33,11 +33,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.jiangxiwen.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/">
+<link rel="canonical" href="https://blog.xiwenjiang.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/","path":"2018/11/22/确保跳出作用域时std_thread是不可连接的（unjoinable）/","title":"确保跳出作用域时std::thread是不可连接的（unjoinable）"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.xiwenjiang.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/","path":"2018/11/22/确保跳出作用域时std_thread是不可连接的（unjoinable）/","title":"确保跳出作用域时std::thread是不可连接的（unjoinable）"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>确保跳出作用域时std::thread是不可连接的（unjoinable） | CrazySpy's blog</title>
@@ -187,7 +187,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/">
+    <link itemprop="mainEntityOfPage" href="https://blog.xiwenjiang.me/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">

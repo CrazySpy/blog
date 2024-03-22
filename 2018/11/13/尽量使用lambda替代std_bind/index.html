@@ -18,12 +18,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.xiwenjiang.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="C++11中的std::bind继承自C++98的std::bind1st和std::bind2nd，它自从2005年起就是标准库的一部分了。这一年C++标准委员会采用了一份叫做TR1的文档，这份文档中包含了bind的描述（在TR1中，bind函数是在不同的命名空间中，所以它叫std::tr1::bind，而不是std::bind）。bind的这段长久历史就意味着有很多程序员已经拥有丰富的经验使用">
 <meta property="og:type" content="article">
 <meta property="og:title" content="尽量使用lambda替代std::bind">
-<meta property="og:url" content="https://www.jiangxiwen.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/index.html">
+<meta property="og:url" content="https://blog.xiwenjiang.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/index.html">
 <meta property="og:site_name" content="CrazySpy&#39;s blog">
 <meta property="og:description" content="C++11中的std::bind继承自C++98的std::bind1st和std::bind2nd，它自从2005年起就是标准库的一部分了。这一年C++标准委员会采用了一份叫做TR1的文档，这份文档中包含了bind的描述（在TR1中，bind函数是在不同的命名空间中，所以它叫std::tr1::bind，而不是std::bind）。bind的这段长久历史就意味着有很多程序员已经拥有丰富的经验使用">
 <meta property="og:locale" content="zh_CN">
@@ -33,11 +33,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://www.jiangxiwen.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/">
+<link rel="canonical" href="https://blog.xiwenjiang.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/","path":"2018/11/13/尽量使用lambda替代std_bind/","title":"尽量使用lambda替代std::bind"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.xiwenjiang.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/","path":"2018/11/13/尽量使用lambda替代std_bind/","title":"尽量使用lambda替代std::bind"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>尽量使用lambda替代std::bind | CrazySpy's blog</title>
@@ -187,7 +187,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/">
+    <link itemprop="mainEntityOfPage" href="https://blog.xiwenjiang.me/2018/11/13/%E5%B0%BD%E9%87%8F%E4%BD%BF%E7%94%A8lambda%E6%9B%BF%E4%BB%A3std_bind/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
