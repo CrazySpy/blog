@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="有这样一段代码用于在日志中记录当前的时间和日期，然后添加名字到整体的一个数据结构中: 123456789std::multiset&lt;std::string&gt; names;void logAndAdd(const std::string&amp; name)&amp;#123;	auto now &#x3D; std::chrono::system_clock::now();		log(now, &amp;quo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="避免重载全体引用为参数的函数">
+<meta property="og:url" content="https://www.jiangxiwen.me/2018/10/22/%E9%81%BF%E5%85%8D%E9%87%8D%E8%BD%BD%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E4%B8%BA%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0/index.html">
+<meta property="og:site_name" content="CrazySpy&#39;s blog">
+<meta property="og:description" content="有这样一段代码用于在日志中记录当前的时间和日期，然后添加名字到整体的一个数据结构中: 123456789std::multiset&lt;std::string&gt; names;void logAndAdd(const std::string&amp; name)&amp;#123;	auto now &#x3D; std::chrono::system_clock::now();		log(now, &amp;quo">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-10-22T13:21:55.000Z">
+<meta property="article:modified_time" content="2018-10-22T13:21:55.000Z">
+<meta property="article:author" content="CrazySpy">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.jiangxiwen.me/2018/10/22/%E9%81%BF%E5%85%8D%E9%87%8D%E8%BD%BD%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E4%B8%BA%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/10/22/%E9%81%BF%E5%85%8D%E9%87%8D%E8%BD%BD%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E4%B8%BA%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0/","path":"2018/10/22/避免重载全体引用为参数的函数/","title":"避免重载全体引用为参数的函数"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>避免重载全体引用为参数的函数 | CrazySpy's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CrazySpy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CrazySpy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/10/22/%E9%81%BF%E5%85%8D%E9%87%8D%E8%BD%BD%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E4%B8%BA%E5%8F%82%E6%95%B0%E7%9A%84%E5%87%BD%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CrazySpy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="避免重载全体引用为参数的函数 | CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          避免重载全体引用为参数的函数
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-10-22 21:21:55" itemprop="dateCreated datePublished" datetime="2018-10-22T21:21:55+08:00">2018-10-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/" itemprop="url" rel="index"><span itemprop="name">C/C++</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/Effective-Modern-C/" itemprop="url" rel="index"><span itemprop="name">Effective Modern C++</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>有这样一段代码用于在日志中记录当前的时间和日期，然后添加名字到整体的一个数据结构中:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">std::multiset&lt;std::string&gt; names;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">logAndAdd</span><span class="params">(<span class="type">const</span> std::string&amp; name)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">auto</span> now = std::chrono::system_clock::<span class="built_in">now</span>();</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">log</span>(now, <span class="string">&quot;logAndAdd&quot;</span>);</span><br><span class="line">	</span><br><span class="line">	names.<span class="built_in">emplace</span>(name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 考虑如下的调用之后，你会发现代码的效率并不是很高:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">petName</span><span class="params">(<span class="string">&quot;Darla&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(petName);</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAndAdd</span>(std::<span class="built_in">string</span>(<span class="string">&quot;Persephone&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(<span class="string">&quot;Patty Dog&quot;</span>);</span><br></pre></td></tr></table></figure>
+在第一个调用中，petName被绑定到了引用参数name。在logAndAdd中，name被赋值给了names.emplace函数。因为name是左值，所以name被复制到了names里。这个复制是没有办法避免的，因为name是一个左值引用。
+在第二个调用中，参数name绑定到了由“Persephone”显式构造的std::string上，这是一个右值。name本身是一个左值，所以被复制到了names中。但是理论上我们可以感觉到，这个name可以移动到names中，因为name引用的是一个右值。
+在第三个调用中，参数name绑定了一个右值，但是这一次的std::string是隐式从“Patty
+Dog”构造的。然后就和第二次调用一样，把name复制到names中。因为这一次使用的是直接使用字面的字符串，所以没有必要创造这个临时的std::string，而是应该将这个字面的字符串直接传给emplace函数来构造一个std::string。所以在第三种调用中完全没有必要使用任何的复制和移动std::string的操作。
+<span id="more"></span>
+为了提高上述代码的效率，我们可以使用下面这个使用了全体引用的代码:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="function"><span class="type">void</span> <span class="title">logAndAdd</span><span class="params">(T&amp;&amp; name)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">auto</span> now = std::chrono::system_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line">	<span class="built_in">log</span>(now, <span class="string">&quot;logAndAdd&quot;</span>); names.<span class="built_in">emplace</span>(std::forward&lt;T&gt;(name));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">std::string <span class="title">petName</span><span class="params">(<span class="string">&quot;Darla&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(petName);</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAndAdd</span>(std::<span class="built_in">string</span>(<span class="string">&quot;Persephone&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(<span class="string">&quot;Patty Dog&quot;</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure> 效率可以得到提升。</p>
+<p>如果这时候重载一个方法可以用id来代替name进行logAndAdd，并且这个id是int类型的，这时候我们如果对logAndAdd函数进行重载，那么就应该是这样的:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">nameFormIdx</span><span class="params">(<span class="type">int</span> idx)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">logAndAdd</span><span class="params">(<span class="type">int</span> idx)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">auto</span> now = std::chrono::system_clock::<span class="built_in">now</span>();</span><br><span class="line"></span><br><span class="line">	<span class="built_in">log</span>(now, <span class="string">&quot;logAndAdd&quot;</span>);</span><br><span class="line"></span><br><span class="line">	names.<span class="built_in">emplace</span>(<span class="built_in">nameFromIdx</span>(idx));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">std::string <span class="title">petName</span><span class="params">(<span class="string">&quot;Darla&quot;</span>)</span></span>; <span class="comment">//下面三个都调用了logAndAdd(T&amp;&amp;)</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(petName);</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAndAdd</span>(std::<span class="built_in">string</span>(<span class="string">&quot;Persephone&quot;</span>));</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAddAdd</span>(<span class="string">&quot;Patty Dog&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAndAdd</span>(<span class="number">22</span>); <span class="comment">// 调用了logAndAdd(int)</span></span><br></pre></td></tr></table></figure> 其实这是有问题的。假设有如下的调用: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">short</span> nameIdx;</span><br><span class="line"></span><br><span class="line"><span class="built_in">logAndAdd</span>(nameIdx); <span class="comment">// 出错！</span></span><br></pre></td></tr></table></figure>
+我们来分析下为什么会出错。首先由两个重载函数，其中一个的参数是全体引用，这个函数的T可以被推导为short。因此编译器就使用这个全体引用为参数的函数，因为它匹配得更加精准了。而int为参数的函数因为short要匹配上它还需要进行到更大范围的类型的转换，因此优先使用精准匹配那个，也就是logAndAdd(T&amp;&amp;)了。但是在这个函数中，name被std::forward到了emplace函数当中，因此在这时，就会执行std::string类型的构造函数，并且参数为short。因为std::string没有这样的构造函数，所以编译失败。这个错误的根源是全体引用为参数的函数因为自动推导是的模板函数变成比其它重载函数有更加准确的类型的参数的函数。参数类型是全体引用的函数是C++中最贪心的函数。它们会推导生成参数类型和实际调用的参数相同的函数。这个导致了重载参数是全体引用的函数是一个不明智的选择。</p>
+<p>特别是使用完美转发构造函数(perfect forwarding
+constructor)时最容易栽进这样的坑里。想想一个Person类，拥有几个构造函数来替代一个只能使用std::string或者index的构造函数:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="comment">// 完美转发构造函数</span></span><br><span class="line">		<span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function">			<span class="keyword">explicit</span> <span class="title">Person</span><span class="params">(T&amp;&amp; n)</span> : name(std::forward&lt;T&gt;(n))&#123;</span> &#125;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">explicit</span> <span class="title">Persion</span><span class="params">(<span class="type">int</span> idx)</span> : name(nameFromIdx(idx))&#123;</span> &#125; </span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span>:</span><br><span class="line">		std::string name;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+不过还是和前面一样，如上代码中如果传递给logAndAdd是一个整数类型或者其它数字类型，还是调用全体引用函数，从而编译失败。但是更糟糕的是，这里还有很多看不到的编译器自动生成的重载函数。</p>
+<p>在前面(<a
+href="/2018/10/03/理解C++11中特别成员函数的生成/">理解C++11中特别成员函数的生成</a>)讲过，在合适的情况下，编译器将会生成复制和移动构造函数，并且在有模板函数能生成复制或者移动构造函数时仍然会生成。如果Person类的复制构造函数和移动构造函数生成了，Person类将会看上去更加高效:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function">			<span class="keyword">explicit</span> <span class="title">Person</span><span class="params">(T&amp;&amp; n)</span> <span class="comment">// 完美转发构造函数</span></span></span><br><span class="line"><span class="function">			:name(std::forward&lt;T&gt;(n))&#123;</span> &#125;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">explicit</span> <span class="title">Persion</span><span class="params">(<span class="type">int</span> idx)</span></span>; <span class="comment">// int为参数的构造函数 </span></span><br><span class="line">		<span class="built_in">Person</span>(<span class="type">const</span> Person&amp; rhs); <span class="comment">// 编译器自动生成的复制构造函数</span></span><br><span class="line">		<span class="built_in">Person</span>(Person&amp;&amp; rhs); <span class="comment">// 编译器自动生成的移动构造函数</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span>:</span><br><span class="line">		std::string name;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> 如果这样调用: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Person <span class="title">p</span><span class="params">(<span class="string">&quot;Nancy&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">cloneOfP</span><span class="params">(p)</span></span>; <span class="comment">// 根据p复制新的Person对象，但这不会编译成功</span></span><br></pre></td></tr></table></figure>
+这里我们尝试根据一个Person对象生成另一个Person对象。但是代码不会调用复制构造函数，而是调用完美转发函数。这个函数尝试使用Person对象创建Person中的std::string成员变量，也就是name。因为不存在从Person到std::string的转换方法，因此编译器报错。
+为什么会出现这样的问题呢？因为这是C++规则规定：<strong>cloneOfP为非const类型的左值，因此这就意味着模板构造函数可以生成一个非const左值为参数的Person构造函数。</strong>也就是Person看上去是这个样子的:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="function"><span class="keyword">explicit</span> <span class="title">Person</span><span class="params">(Person&amp; n)</span> : name(std::forward&lt;Person&amp;&gt;(n));</span></span><br><span class="line">		<span class="function"><span class="keyword">explicit</span> <span class="title">Persion</span><span class="params">(<span class="type">int</span> idx)</span></span>;</span><br><span class="line">		<span class="built_in">Person</span>(<span class="type">const</span> Person&amp; rhs);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span>:</span><br><span class="line">		std::string name;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">Person <span class="title">p</span><span class="params">(<span class="string">&quot;Nancy&quot;</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">cloneOfP</span><span class="params">(p)</span></span>;</span><br></pre></td></tr></table></figure>
+<strong>cloneOfP可能传给复制构造函数或者模板生成的函数。而调用复制构造函数则需要p为const类型的，而模板生成的函数则没有这个要求，所以编译器选择了模板生成的完美转发函数。</strong></p>
+<p>当然我们还可以给p一个const属性: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="function"><span class="keyword">explicit</span> <span class="title">Person</span><span class="params">(<span class="type">const</span> Person&amp; n)</span></span>;</span><br><span class="line">		<span class="built_in">Person</span>(<span class="type">const</span> Person&amp; rhs);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span>:</span><br><span class="line">		std::string name;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> Person <span class="title">cp</span><span class="params">(<span class="string">&quot;Nancy&quot;</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">cloneOfP</span><span class="params">(cp)</span></span>; <span class="comment">// 此时就会调用复制构造函数</span></span><br></pre></td></tr></table></figure>
+因为p现在是const类型的，根据选取最佳参数匹配函数的原则应该选参数为const
+Person&amp;的构造函数。但这时候有两个这样的构造函数，根据C++的规则，我们优先选择非模板生成的函数，也就是选择复制构造函数。</p>
+<p>完美转发构造函数和编译器自动生成的复制移动函数经常会导致一系列问题，尤其在继承时。例如在继承类初始化时，复制或移动会导致一些你意想不到的问题:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SpecialPerson</span> : <span class="keyword">public</span> Person</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">		<span class="built_in">SpecialPerson</span>(<span class="type">const</span> SpecialPerson&amp; rhs) :<span class="built_in">Person</span>(rhs) &#123; &#125;</span><br><span class="line">		<span class="built_in">SpecialPerson</span>(SpecialPerson&amp;&amp; rhs) :<span class="built_in">Person</span>(std::<span class="built_in">move</span>(rhs)) &#123; &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+在上面代码中继承类构造时指定基类的构造方式，并且使用继承类的对象作为基类的构造参数。这种情况下，继承类的复制和移动操作不调用基类的任何移动或者复制构造函数。它们调用的是基类的完美转发构造函数。因为继承类传给基类的是SpecialPerson类型的对象，而基类的不是模板的构造函数都是以Person作为参数类型的。完美转发函数的模板会生成一个完美匹配参数的函数，所以完美转发函数得到调用。</p>
+<p>根据上面的讲述，应该可以理解为什么要避免重载全体引用为参数的函数。如果重载参数为全体引用的函数是一个错误的做法，对于需要转发大量参数类型的函数时你该怎么做呢？对于重载参数为全体引用的函数你可以尽量避免，但当无法避免时我们有什么技巧可以使得程序既不会出现上面的问题，又可以达到转发大量参数类型的目的？请参看下一章：<a
+href="/2018/10/25/重载参数为全体引用的函数的替代方法/">重载参数为全体引用的函数的替代方法</a>。</p>
+<p><strong>总结</strong> *
+重载参数为全体引用的函数可能会导致重载发生的次数超乎你想象，因为模板函数的参数类型推测结果可能精准匹配你的实参。
+*
+完美转发函数尤其可能会导致问题。因为它可以更完美地生成适合非const左值的复制函数，并且可能会劫持继承类调用父类的复制或移动构造函数。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/10/21/%E5%AF%B9%E4%BA%8E%E5%B7%A6%E5%80%BC%E5%BC%95%E7%94%A8%E4%BD%BF%E7%94%A8std_move%EF%BC%8C%E5%AF%B9%E4%BA%8E%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E4%BD%BF%E7%94%A8std_forward/" rel="prev" title="对于左值引用使用std::move，对于全体引用使用std::forward">
+                  <i class="fa fa-angle-left"></i> 对于左值引用使用std::move，对于全体引用使用std::forward
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/10/25/%E9%87%8D%E8%BD%BD%E5%8F%82%E6%95%B0%E4%B8%BA%E5%85%A8%E4%BD%93%E5%BC%95%E7%94%A8%E7%9A%84%E5%87%BD%E6%95%B0%E7%9A%84%E6%9B%BF%E4%BB%A3%E6%96%B9%E6%B3%95/" rel="next" title="重载参数为全体引用的函数的替代方法">
+                  重载参数为全体引用的函数的替代方法 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CrazySpy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

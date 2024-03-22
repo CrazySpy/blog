@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="poj有一道非常经典的题目:Knight Moves。大意是说每次移动“日”字型，最少移动多少次能达到目的地。学过算法的人都知道这是一题非常简单的bfs题。 今天我接触到了在hduoj上接触到了1560题。大意是要求一个最短序列，这个序列的子序列包含了给定的几个序列。 一开始我是想用暴力搜索结合剪枝的。题目中给定的子序列个数最多8个，每个序列最大长度为5，字符串由4中字符组成。这样所求的序列最长为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A*算法">
+<meta property="og:url" content="https://www.jiangxiwen.me/2018/08/10/A-star%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="CrazySpy&#39;s blog">
+<meta property="og:description" content="poj有一道非常经典的题目:Knight Moves。大意是说每次移动“日”字型，最少移动多少次能达到目的地。学过算法的人都知道这是一题非常简单的bfs题。 今天我接触到了在hduoj上接触到了1560题。大意是要求一个最短序列，这个序列的子序列包含了给定的几个序列。 一开始我是想用暴力搜索结合剪枝的。题目中给定的子序列个数最多8个，每个序列最大长度为5，字符串由4中字符组成。这样所求的序列最长为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.jiangxiwen.me/images/A-Star%E7%AE%97%E6%B3%95/A-Star2.png">
+<meta property="og:image" content="https://www.jiangxiwen.me/images/A-Star%E7%AE%97%E6%B3%95/A-Star5.png">
+<meta property="article:published_time" content="2018-08-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2018-08-09T16:00:00.000Z">
+<meta property="article:author" content="CrazySpy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.jiangxiwen.me/images/A-Star%E7%AE%97%E6%B3%95/A-Star2.png">
+
+
+<link rel="canonical" href="https://www.jiangxiwen.me/2018/08/10/A-star%E7%AE%97%E6%B3%95/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/08/10/A-star%E7%AE%97%E6%B3%95/","path":"2018/08/10/A-star算法/","title":"A*算法"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>A*算法 | CrazySpy's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CrazySpy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BE%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">举例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CrazySpy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/08/10/A-star%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CrazySpy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="A*算法 | CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          A*算法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-08-10 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-10T00:00:00+08:00">2018-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>poj有一道非常经典的题目:Knight
+Moves。大意是说每次移动“日”字型，最少移动多少次能达到目的地。学过算法的人都知道这是一题非常简单的bfs题。</p>
+<p>今天我接触到了在hduoj上接触到了1560题。大意是要求一个最短序列，这个序列的子序列包含了给定的几个序列。</p>
+<p>一开始我是想用暴力搜索结合剪枝的。题目中给定的子序列个数最多8个，每个序列最大长度为5，字符串由4中字符组成。这样所求的序列最长为40，如果用暴力搜索可能会达到<span
+class="math display">\[4^{40}\]</span>次，这个预期太可怕了（虽然剪枝会减少这一数字）。后来discuss中提示，使用A*算法。
+A*算法在以前的接触当中更多的是用在路径搜索上，例如上面的poj的那道题。没有想到A*算法是可以用在这道hduoj题上的。</p>
+<span id="more"></span>
+<h1 id="概念">概念</h1>
+<p>首先我们来回顾一下A*算法。为了相对准确表述，我对维基百科相关词条进行翻译，词条地址：A*
+search algorithm</p>
+<p>A*算法又被称作为最好优先算法(best-first
+search)，这意味着这个算法通过在所有路径中寻找最少消耗的路径来解决问题，这个最少消耗可能是最短的路径、最少的时间等等。它最先考虑可能是最少消耗路径的路径，这是使用权重图(weighted
+graph)的数据结构计算得出的，大概的算法步骤：从图的某一个指定节点出发，根据下一步能走的节点构建一个路径树，然后下一步选择其中预计最优的节点走下去，重复构建这种路径树，直到其中某条路径能走到预先设定好的那个目标节点。</p>
+<p>在每次的主循环迭代中，A*算法需要决定下一步走到哪个节点。这个在bfs(广度优先)算法中是不存在的。广度优先算法对于所有可以走的节点是一视同仁，而A*算法则是要考虑可能是最好路径一部分的那条路径。</p>
+<p>A*算法的可能最优路径是通过如下公式得出的： <span
+class="math display">\[f(n) = g(n) + h(n)\]</span></p>
+<p>n是图中的某一个节点坐标；g(n)是从起始节点到n节点的最少花费；h(n)是一个启发式值，估计了n到目标节点的最少花费。这个启发式函数是根据问题决定的，当问题是求最短路径时，启发函数必须是可接受的，这也就是说这个函数永远不会高估实际到目标节点的最小花费。</p>
+<h1 id="举例">举例</h1>
+<p>可能上面概念性的表述有一些难以理解，下面通过一个实例讲述A*算法。</p>
+<p>求起点到终点的最短距离。</p>
+<p>下面例子中，❤️表示终点，红色方框表示已经走过的节点（bfs中，已经走过的节点就不要再走了，这里的道理和bfs中的一样，走过就不用再走了），绿色方框表示可以走的节点，黑色是障碍物。方框中三个数，第一个数是f(n)，第二个是g(n)，第三个是h(n)。h(n)采用的启发函数是到目标节点的曼哈顿距离，因为到目标节点的花费肯定大于等于曼哈顿距离。</p>
+<p>起点是第四行第二列的节点。 <img
+src="/images/A-Star算法/A-Star1.png" /></p>
+<p>因为起点右边的节点F(h)最小，也就意味着起点到这个节点的花费和预计到终点的花费之和最小，也就是预计走这个节点的路径花费最小，所以优先考虑这个节点。而实际上一眼可以看出最短路径不可能经过这个节点。
+<img src="/images/A-Star算法/A-Star2.png" /></p>
+<p>按照算法继续走下去，应该是这样的。 <img
+src="/images/A-Star算法/A-Star3.png" /> <img
+src="/images/A-Star算法/A-Star4.png" /></p>
+<p>在上面一张图的状态下，f(n)最小的未走过的节点是第三行第一列的那个节点，所以算法选择其继续走下去。
+<img src="/images/A-Star算法/A-Star5.png" /></p>
+<p>通过走回路，可以确定一条最短路径。 <img
+src="/images/A-Star算法/A-Star6.png" /></p>
+<h1 id="总结">总结</h1>
+<p>附上一张维基百科的gif用以帮助理解。 <img
+src="/images/A-Star算法/Astar_progress_animation.gif" /></p>
+<p>从图上可以看出A*算法在后期不太会向左上角（偏离目标节点的方向）进行搜索，这还是因为左上角方向会增大启发函数的值，导致算法不会偏向这边，而是选择右上角。</p>
+<p>但是也可以看出这套算法的弱点，就是如果启发函数值，也就是h(n)和实际值偏差很大，甚至出现h(n)越小，实际到终点需要的花费越大的情况，会导致A*算法的效率低下的问题，这也是bfs算法在竞赛中仍被使用的原因，要根据情景合理使用。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/06/04/%E6%AF%8D%E5%87%BD%E6%95%B0/" rel="prev" title="母函数">
+                  <i class="fa fa-angle-left"></i> 母函数
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/09/14/C++11%E6%A0%87%E5%87%86%E7%9A%84%E6%A8%A1%E6%9D%BF%E7%B1%BB%E5%9E%8B%E6%8E%A8%E6%B5%8B/" rel="next" title="C++11标准的模板类型推测">
+                  C++11标准的模板类型推测 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CrazySpy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

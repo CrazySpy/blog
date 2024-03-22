@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在之前我们说到，一个可连接的（joinable）std::thread有一个对应系统底层的执行线程。一个非延迟任务的future也和底层系统线程有一个相似的关系。因此std::thread对象和future对象都可以被看作是系统线程的两个使用处理方式。 之前我们还说过，std::thread在遇到可连接线程跳出作用域时，采取的策略是程序直接终止运行，而不是隐式执行join或者detach。而在fu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="请注意不同的线程处理方式的析构函数行为">
+<meta property="og:url" content="https://www.jiangxiwen.me/2018/12/02/%E8%AF%B7%E6%B3%A8%E6%84%8F%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E8%A1%8C%E4%B8%BA/index.html">
+<meta property="og:site_name" content="CrazySpy&#39;s blog">
+<meta property="og:description" content="在之前我们说到，一个可连接的（joinable）std::thread有一个对应系统底层的执行线程。一个非延迟任务的future也和底层系统线程有一个相似的关系。因此std::thread对象和future对象都可以被看作是系统线程的两个使用处理方式。 之前我们还说过，std::thread在遇到可连接线程跳出作用域时，采取的策略是程序直接终止运行，而不是隐式执行join或者detach。而在fu">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-02T15:10:42.000Z">
+<meta property="article:modified_time" content="2018-12-02T15:10:42.000Z">
+<meta property="article:author" content="CrazySpy">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.jiangxiwen.me/2018/12/02/%E8%AF%B7%E6%B3%A8%E6%84%8F%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E8%A1%8C%E4%B8%BA/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/12/02/%E8%AF%B7%E6%B3%A8%E6%84%8F%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E8%A1%8C%E4%B8%BA/","path":"2018/12/02/请注意不同的线程处理方式的析构函数行为/","title":"请注意不同的线程处理方式的析构函数行为"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>请注意不同的线程处理方式的析构函数行为 | CrazySpy's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CrazySpy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CrazySpy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/12/02/%E8%AF%B7%E6%B3%A8%E6%84%8F%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E8%A1%8C%E4%B8%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CrazySpy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="请注意不同的线程处理方式的析构函数行为 | CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          请注意不同的线程处理方式的析构函数行为
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-12-02 23:10:42" itemprop="dateCreated datePublished" datetime="2018-12-02T23:10:42+08:00">2018-12-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/" itemprop="url" rel="index"><span itemprop="name">C/C++</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/Effective-Modern-C/" itemprop="url" rel="index"><span itemprop="name">Effective Modern C++</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在之前我们说到，一个可连接的（joinable）std::thread有一个对应系统底层的执行线程。一个非延迟任务的future也和底层系统线程有一个相似的关系。因此std::thread对象和future对象都可以被看作是系统线程的两个使用处理方式。</p>
+<p>之前我们还说过，std::thread在遇到可连接线程跳出作用域时，采取的策略是程序直接终止运行，而不是隐式执行join或者detach。<strong>而在future中，则是有可能隐式执行join，也有可能隐式执行detach，甚至也有可能什么都不做。反正future是不会导致程序终止。</strong>下面我们就来细讲future的这种策略。
+<span id="more"></span>
+future会将程序的结果保存在一个叫做std::promise的对象中，也就是说被调用者就是通过std::promise对象与调用者进行通信以传递结果。但是有一个问题，就是被调用者的结果存放在哪才能响应调用者执行get呢？如果这个结果存放在被调用者的std::promise中，那么在被调用完之后std::promise就会随着被调用对象而销毁；这个结果如果存放在调用者的future中，因为std::future会被用于创建一个std::shared_future（被调用者的结果的拥有权从std::future转交给std::shared_future），这会导致原std::future销毁后还会被复制许多次，又因为不是所有结果的类型是可拷贝的，所以这样做也不是很合适。那么哪一个和被调用者相关的future存放结果呢？
+所以被调用者执行结果既不是适合存放在被调用者相关的对象中，也不是适合存放在调用者相关的对象中。而是存放在两者之外的一个地方，这个地方被称为<strong>共享状态</strong>（shared
+state）。共享状态是一块堆中的对象，它的类型、接口以及实现方式在标准中没有指定，因此标准库编写者可以随心所欲地实现它。</p>
+<p>共享状态的存在是非常重要的，因为它直接决定了future的销毁方式。具体的来说：</p>
+<ul>
+<li>最后一个使用某个非延迟任务的共享状态的future的销毁会通过std::async阻塞到任务完成。在必要时，对这个future的销毁会在异步运行的线程上隐式调用join。</li>
+<li>其它的future就简单地直接销毁future对象。在异步运行的线程上，这就像在对应的线程上隐式执行了detach。在延迟执行的对象上，这就相当于不执行这个任务。</li>
+</ul>
+<p>这些规则听上去很复杂，但是我们可以用一个“普通”规则和一个“特殊”规则来描述：
+“普通”规则：只有future的数据成员会被销毁，在销毁时不会执行join、detach甚至是运行任何东西（事实上还是会做一件事的，那就是会递减共享状态的引用计数器，这步操作是由使用了这个共享状态的future和被调用者的std::promise共同完成的，这个引用计数器记录了何时可以销毁共享状态）。</p>
+<p>如果一个future满足了下面所有的条件时就会实行“特殊”： *
+这个future必须是引用了由std::async创造的共享状态 *
+任务的启动策略必须是std::launch::async。不论是系统在运行时选择的还是在std::async中选择的。
+*
+这个future是最后一个引用某个共享状态的一个。std::future永远都是满足条件的。但是std::shared_future就会对是否是最后一个引用进行判断。</p>
+<p>只有当所有的条件都满足了，future的销毁才会使用“特殊”行为。“特殊”行为就是阻塞线程，直到异步运行的任务完成。更具体的说就是，就是类似于在std::async启动策略创建的任务上调用join。</p>
+<p>为什么会对非延迟任务、并有std::async启动的分享状态有一条特殊的规则呢？这是因为标准委员会希望避免默认detach带来的问题，但是他们又不希望使用激进的策略作为命令控制编程。所以他们妥协使用隐式的join。这个决定是充满争议的，因此在C+14指定是也存在强烈的呼声禁用这个特殊的行为，不过最终还是没有做出任何改变。</p>
+<p>在future提供的API中，没有一个是可以确定future是否引用了由std::async创建的分享状态，所以给你一个future对象，你是无法确定系统是否会在销毁异步运行的任务时使用阻塞。</p>
+<p>这种行为不确定就会带来问题，下面讲如何避免这种不确定。
+有如下的补全代码： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">std::vector&lt;std::future&lt;<span class="type">void</span>&gt;&gt; futs;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Widget</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span>:</span><br><span class="line">		std::shared_future&lt;<span class="type">double</span>&gt; fut;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+当然如果你有方法知道future不会满足上面的三个条件以在销毁时执行特殊行为（例如通过程序逻辑），你确实可以保证future不会再销毁时阻塞。不过这里可以使用一种方法，上面讲到，必须是引用std::async创建的共享状态的future会发生阻塞，而能创建共享状态的方式不只有std::async，还有例如std::packaged_task。std::packaged_task对象会通过包装要异步执行的函数，然后使得它的结果会被放到共享状态中。之后可以通过std::packaged_task的get_future函数获取引用了分享状态的future：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">calcValue</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">pt</span><span class="params">(calcValue)</span></span>; <span class="comment">// 包装calcValue，使得它可以异步执行</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> fut = pt.<span class="built_in">get_future</span>(); <span class="comment">// 获取pt的future</span></span><br></pre></td></tr></table></figure>
+<strong>这里的fut的共享状态不是有std::async创建的，因此它的销毁也会遵循“常规”行为。</strong></p>
+<p>只要创建了，std::packaged_task
+pt就可以在线程上运行了。（它可以通过std::async运行，但是如果你希望通过std::async运行某个任务，就没有必要使用std::packaged_task。因为std::async做了std::packaged_task做的任何事情。）</p>
+<p>std::packaged_task是不可拷贝的，因此当pt传递给std::thread的构造函数时，它必须要转换成右值：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::thread <span class="title">t</span><span class="params">(std::move(pt))</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>在知道std::packaged_task特性之后，我们就可以使用其来保证future的销毁时遵循普通行为了。在下面的代码中我们要做一个有趣的分析，我们把代码放在一个作用域中：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">()</span>&gt; <span class="title">pt</span><span class="params">(calcValue)</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">auto</span> fut = pt.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">	<span class="function">std::thread <span class="title">t</span><span class="params">(std::move(pt))</span></span>;</span><br><span class="line"></span><br><span class="line">	... <span class="comment">// 作用域的结尾。在下面会讨论这里的三种情况。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+代码中的“...”部分是在std::thread的创建之后、作用域结束之前，我们要进行讨论。t这里可能会有三种情况：
+* t没有发生什么。在这里t将会变得是可以join的，这就会导致程序终止。 *
+t执行了join。那么就没有必要在fut的析构函数中进行阻塞，因为调用者已经执行join。
+*
+t执行了detach。那么就没有必要在fut的析构函数中执行detach。因为调用者已经执行detach。</p>
+<p>换句话说，<strong>如果future的共享状态是由std::packaged_task生成的，通常是没有必要考虑销毁策略。因为究竟是终止程序、join还是detach的选择将会在std::thread对象创建后进行指定，与std::packaged_task无关。</strong></p>
+<p><strong>总结</strong></p>
+<ul>
+<li>future的销毁通常只是销毁数据成员。</li>
+<li>最后一次使用某个引用了分享状态的future，并且这个分享状态是非延迟任务的、通过std::async启动的future将会阻塞到任务完成后再销毁自己。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/11/22/%E7%A1%AE%E4%BF%9D%E8%B7%B3%E5%87%BA%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%97%B6std_thread%E6%98%AF%E4%B8%8D%E5%8F%AF%E8%BF%9E%E6%8E%A5%E7%9A%84%EF%BC%88unjoinable%EF%BC%89/" rel="prev" title="确保跳出作用域时std::thread是不可连接的（unjoinable）">
+                  <i class="fa fa-angle-left"></i> 确保跳出作用域时std::thread是不可连接的（unjoinable）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/12/07/%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8void%E7%B1%BB%E5%9E%8B%E7%9A%84future%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E4%BA%8B%E4%BB%B6%E9%80%9A%E4%BF%A1/" rel="next" title="考虑使用void类型的future的一次性的事件通信">
+                  考虑使用void类型的future的一次性的事件通信 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CrazySpy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

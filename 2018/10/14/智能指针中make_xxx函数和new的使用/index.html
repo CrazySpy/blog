@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在前面的std::unique_ptr、std::shared_ptr智能指针的介绍中，都介绍了使用new的方式构造智能指针。接下来我们会着重将使用new构造智能指针的方式和使用std::make_unique、std::make_share的方式进行比较。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="智能指针中make_xxx函数和new的使用">
+<meta property="og:url" content="https://www.jiangxiwen.me/2018/10/14/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E4%B8%ADmake_xxx%E5%87%BD%E6%95%B0%E5%92%8Cnew%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="CrazySpy&#39;s blog">
+<meta property="og:description" content="在前面的std::unique_ptr、std::shared_ptr智能指针的介绍中，都介绍了使用new的方式构造智能指针。接下来我们会着重将使用new构造智能指针的方式和使用std::make_unique、std::make_share的方式进行比较。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-10-14T07:11:51.000Z">
+<meta property="article:modified_time" content="2018-10-14T07:11:51.000Z">
+<meta property="article:author" content="CrazySpy">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.jiangxiwen.me/2018/10/14/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E4%B8%ADmake_xxx%E5%87%BD%E6%95%B0%E5%92%8Cnew%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/10/14/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E4%B8%ADmake_xxx%E5%87%BD%E6%95%B0%E5%92%8Cnew%E7%9A%84%E4%BD%BF%E7%94%A8/","path":"2018/10/14/智能指针中make_xxx函数和new的使用/","title":"智能指针中make_xxx函数和new的使用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>智能指针中make_xxx函数和new的使用 | CrazySpy's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CrazySpy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#make%E5%87%BD%E6%95%B0%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">1.</span> <span class="nav-text">make函数的优势</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#make%E5%8F%AF%E4%BB%A5%E5%B0%91%E5%86%99%E4%B8%80%E6%AC%A1%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.1.</span> <span class="nav-text">make可以少写一次类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8make%E5%8F%AF%E4%BB%A5%E4%BF%9D%E8%AF%81%E5%BC%82%E5%B8%B8%E5%AE%89%E5%85%A8"><span class="nav-number">1.2.</span> <span class="nav-text">使用make可以保证异常安全</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E4%BB%A5%E6%8F%90%E9%AB%98%E4%BB%A3%E7%A0%81%E7%9A%84%E6%95%88%E7%8E%87"><span class="nav-number">1.3.</span> <span class="nav-text">可以提高代码的效率</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#make%E5%87%BD%E6%95%B0%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">make函数的局限性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A0%E6%B3%95%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%80%E6%AF%81%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">无法自定义销毁过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A0%E6%B3%95%E4%B8%80%E6%AD%A5%E4%BD%BF%E7%94%A8initializer_list%E7%9A%84%E6%96%B9%E5%BC%8F%E6%9E%84%E9%80%A0%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.2.</span> <span class="nav-text">无法一步使用initializer_list的方式构造对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9D%82%E9%A1%B9"><span class="nav-number">3.</span> <span class="nav-text">杂项</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E8%A6%81%E4%BD%BF%E7%94%A8%E9%87%8D%E8%BD%BD%E7%9A%84newdelete%E6%93%8D%E4%BD%9C%E7%AC%A6%E6%9E%84%E9%80%A0%E8%A2%AB%E6%8C%87%E5%90%91%E7%9A%84%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.1.</span> <span class="nav-text">不要使用重载的new、delete操作符构造被指向的对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#stdmake_shared%E6%9E%84%E9%80%A0%E6%97%B6%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%92%8C%E6%8E%A7%E5%88%B6%E5%9D%97%E7%9A%84%E9%94%80%E6%AF%81%E6%97%B6%E9%97%B4"><span class="nav-number">3.2.</span> <span class="nav-text">std::make_shared构造时的对象和控制块的销毁时间</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CrazySpy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/10/14/%E6%99%BA%E8%83%BD%E6%8C%87%E9%92%88%E4%B8%ADmake_xxx%E5%87%BD%E6%95%B0%E5%92%8Cnew%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CrazySpy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="智能指针中make_xxx函数和new的使用 | CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          智能指针中make_xxx函数和new的使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-10-14 15:11:51" itemprop="dateCreated datePublished" datetime="2018-10-14T15:11:51+08:00">2018-10-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/" itemprop="url" rel="index"><span itemprop="name">C/C++</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/Effective-Modern-C/" itemprop="url" rel="index"><span itemprop="name">Effective Modern C++</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在前面的std::unique_ptr、std::shared_ptr智能指针的介绍中，都介绍了使用new的方式构造智能指针。接下来我们会着重将使用new构造智能指针的方式和使用std::make_unique、std::make_share的方式进行比较。
+<span id="more"></span>
+对于std::make_unique函数，这个是C++14标准中的新函数，它的实现大体如下:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span>... Ts&gt; std::unique_ptr&lt;T&gt; <span class="title">make_unique</span><span class="params">(Ts&amp;&amp;... params)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> std::<span class="built_in">unique_ptr</span>&lt;T&gt;(<span class="keyword">new</span> <span class="built_in">T</span>(std::forward&lt;Ts&gt;(params)...));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="make函数的优势">make函数的优势</h1>
+<h2 id="make可以少写一次类型">make可以少写一次类型</h2>
+<p>少写类型最简单的好处就是可以少写代码。其次代码的重复会导致复杂的代码和浮肿的对象代码，并且通常会生成复杂的代码，这些代码会导致包括但不限于代码的无常变化，这种现象通常会导致bug。</p>
+<h2 id="使用make可以保证异常安全">使用make可以保证异常安全</h2>
+<p>假设有如下的函数定义: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">processWidget</span><span class="params">(std::shared_ptr&lt;Widget&gt; spw, <span class="type">int</span> priority)</span></span>; </span><br></pre></td></tr></table></figure>
+我们使用new构造std::shared_ptr，这样调用这个函数: <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">processWidget</span>(std::<span class="built_in">shared_ptr</span>&lt;Widget&gt;(<span class="keyword">new</span> Widget), <span class="built_in">computePriority</span>()); <span class="comment">// 这样可能会导致异常 </span></span><br></pre></td></tr></table></figure>
+我们来看一下编译流程:</p>
+<ol type="1">
+<li>在堆上构造Widget。</li>
+<li>构造shared_ptr，参数使用上面在堆上构造的Widget对象。</li>
+<li>执行computePriority()。</li>
+</ol>
+<p>但是记住，编译器没有承诺它会按照如上流程进行编译。也就是说上面的流程只是我们的想象，如果编译器用如下的流程编译，就可能会出现内存泄露:</p>
+<ol type="1">
+<li>在堆上构造Widget。</li>
+<li>执行computePriority()。</li>
+<li>构造shared_ptr，参数使用上面在堆上构造的Widget对象。</li>
+</ol>
+<p>当在第二步的时候，也就是执行computePriority时出现了异常，退出了processWidget函数时，Widget对象就会内存泄露。因为std::shared_ptr不会构造，对第一步的Widget的控制就会消失。
+所以使用make函数的最重要的原因之一就是保证异常安全。我们可以这样编写上面的代码:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">processWidget</span>(std::<span class="built_in">make_shared</span>&lt;Widget&gt;(), <span class="built_in">computePriority</span>());</span><br></pre></td></tr></table></figure> 这样就可以避免了上面可能会出现的内存泄漏。</p>
+<h2 id="可以提高代码的效率">可以提高代码的效率</h2>
+<p>之前讲过，shared_ptr是有两个指针指向两块空间，一个是对象，一个是控制块。如果我们使用了std::make_share构造std::shared_ptr，编译器会自动将代码优化将对象和控制块的空间一起开辟以精简代码并提高效率。如果使用new，对象和控制块很有可能就是分开开辟的，需要两次开辟空间。
+另外使用make减少了一些在控制块中用于记录的空间，隐含地减少了一些内存空间。同样的std::allocate_shared函数在原理上和std::make_shared类似，因此效率也类似。</p>
+<h1 id="make函数的局限性">make函数的局限性</h1>
+<h2 id="无法自定义销毁过程">无法自定义销毁过程</h2>
+<p>unique_ptr和shared_ptr的销毁过程都是通过构造函数实现的，因此如果要自定义销毁过程必须使用构造函数的方式。</p>
+<h2
+id="无法一步使用initializer_list的方式构造对象">无法一步使用initializer_list的方式构造对象</h2>
+<p>在make函数中，所有参数都是以括号的方式构造，而不是使用initializer_list方式。如果要使用initializer_list的方法构造对象，只能使用如下的代码:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> initList = &#123;<span class="number">10</span>, <span class="number">20</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> spv = std::make_shared&lt;std::vector&lt;<span class="type">int</span>&gt;&gt;(initList);</span><br></pre></td></tr></table></figure></p>
+<h1 id="杂项">杂项</h1>
+<h2
+id="不要使用重载的newdelete操作符构造被指向的对象">不要使用重载的new、delete操作符构造被指向的对象</h2>
+<p>new、delete操作符通常用于构造或销毁大小正好是对象的size的对象。这种方法通常不适用于shared_ptr指向的对象的构造和销毁，因为使用std::allocate_shared函数开辟的空间并不是对象的大小，而是对象加上控制块的大小，所以用new、delete操作符以make函数构建或销毁对象是不合理的想法。</p>
+<h2
+id="stdmake_shared构造时的对象和控制块的销毁时间">std::make_shared构造时的对象和控制块的销毁时间</h2>
+<p>使用std::make_shared构造的std::shared_ptr指针，当std::shared_ptr的引用计数器计数为0，那么它就会销毁这个指向的对象。但是在控制块被销毁之前，空间不会释放，这是因为两者的空间是一个整体，只能两者一起销毁。
+控制块中存放了一些额外信息，这些信息中有一个弱计数器(weak
+count)是用来记录指向当前对象的std::weak_ptr的数量。当std::weak_ptr检查自身时，首先检查引用计数器是否为0，并以此决定返回指向的对象还是nullptr，这个过程我们在<a
+href="/2018/10/12/weak_ptr的使用">weak_ptr的使用</a>中也讲过。只要存在std::weak_ptr指向这个对象，这个对象就不能销毁。<strong>因此如果指向的对象是一个十分巨大的对象时，我们可以利用new的方式构造对象，这样可以在引用计数器为0而弱计数器不为0的时候销毁并释放对象的空间，只留下控制块。</strong>
+如果你还关注异常的处理问题时，你可以使用单独语句构造对象，然后把对象作为构造参数的方式来避免这种问题:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::shared_ptr&lt;Widget&gt; <span class="title">spw</span><span class="params">(<span class="keyword">new</span> Widget, customDel)</span></span>; <span class="comment">// 单独语句构造对象</span></span><br><span class="line"><span class="built_in">processWidget</span>(spw, <span class="built_in">computePriority</span>()); <span class="comment">// 对象作为构造函数的参数</span></span><br></pre></td></tr></table></figure>
+上面代码中，即使spw的构造函数出现了问题，抛出了异常，也会保证customDel可以得到指向。
+如果这样执行可以得到异常安全的代码，但是在异常不安全的代码中，processWidget的构造函数的第一个参数是右值，因此，它会使用移动的方式移动一个std::shared_ptr。但是使用单独语句构造对象的异常安全的代码的第一个参数是spw，是一个左值，使用的复制的方式，效率上会有损耗，因为我们之前也讲过需要对引用计数器加一操作。为了使代码更高效，我们做如下修改:
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::shared_ptr&lt;Widget&gt; <span class="title">spw</span><span class="params">(<span class="keyword">new</span> Widget, customDel)</span></span>; <span class="comment">// 单独语句构造对象</span></span><br><span class="line"><span class="built_in">processWidget</span>(std::<span class="built_in">move</span>(spw), <span class="built_in">computePriority</span>()); <span class="comment">// 对象作为构造函数的参数</span></span><br></pre></td></tr></table></figure></p>
+<p>引用《Effective Modern
+C++》中的一句话：大多数情况下使用make_xxx函数是明智的。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/10/12/weak_ptr%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="prev" title="weak_ptr的使用">
+                  <i class="fa fa-angle-left"></i> weak_ptr的使用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/10/18/%E7%90%86%E8%A7%A3std_move%E5%92%8Cstd_forward/" rel="next" title="理解std::move和std::forward">
+                  理解std::move和std::forward <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CrazySpy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

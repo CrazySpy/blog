@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.jiangxiwen.me","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="有时候我们会出现一个线程等待另一个线程完成的情况。例如要等待某个线程完成对数据结构的初始化、等待计算阶段的完成亦或是等待传感器获取到数据。通常我们为了实现线程间互相通信时，会使用条件变量（condition variable，condvar）。有如下定义：检测条件的任务被称为检测任务（detecting task）；对条件作出反应的任务被称为反应任务（reacting task）。 它们的运行策略">
+<meta property="og:type" content="article">
+<meta property="og:title" content="考虑使用void类型的future的一次性的事件通信">
+<meta property="og:url" content="https://www.jiangxiwen.me/2018/12/07/%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8void%E7%B1%BB%E5%9E%8B%E7%9A%84future%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E4%BA%8B%E4%BB%B6%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="CrazySpy&#39;s blog">
+<meta property="og:description" content="有时候我们会出现一个线程等待另一个线程完成的情况。例如要等待某个线程完成对数据结构的初始化、等待计算阶段的完成亦或是等待传感器获取到数据。通常我们为了实现线程间互相通信时，会使用条件变量（condition variable，condvar）。有如下定义：检测条件的任务被称为检测任务（detecting task）；对条件作出反应的任务被称为反应任务（reacting task）。 它们的运行策略">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-07T13:11:39.000Z">
+<meta property="article:modified_time" content="2018-12-07T13:11:39.000Z">
+<meta property="article:author" content="CrazySpy">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://www.jiangxiwen.me/2018/12/07/%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8void%E7%B1%BB%E5%9E%8B%E7%9A%84future%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E4%BA%8B%E4%BB%B6%E9%80%9A%E4%BF%A1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.jiangxiwen.me/2018/12/07/%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8void%E7%B1%BB%E5%9E%8B%E7%9A%84future%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E4%BA%8B%E4%BB%B6%E9%80%9A%E4%BF%A1/","path":"2018/12/07/考虑使用void类型的future的一次性的事件通信/","title":"考虑使用void类型的future的一次性的事件通信"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>考虑使用void类型的future的一次性的事件通信 | CrazySpy's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">CrazySpy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">首页</a></li><li class="menu-item menu-item-archives"><a href="/archives" rel="section">归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Eflag%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">基于flag的方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%9D%A1%E4%BB%B6%E5%8F%98%E9%87%8F%E5%92%8C%E5%9F%BA%E4%BA%8Eflag%E7%9A%84%E7%BB%93%E5%90%88"><span class="nav-number">2.</span> <span class="nav-text">基于条件变量和基于flag的结合</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Efuture%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">基于future的方式</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CrazySpy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives">
+          <span class="site-state-item-count">64</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.jiangxiwen.me/2018/12/07/%E8%80%83%E8%99%91%E4%BD%BF%E7%94%A8void%E7%B1%BB%E5%9E%8B%E7%9A%84future%E7%9A%84%E4%B8%80%E6%AC%A1%E6%80%A7%E7%9A%84%E4%BA%8B%E4%BB%B6%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CrazySpy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="考虑使用void类型的future的一次性的事件通信 | CrazySpy's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          考虑使用void类型的future的一次性的事件通信
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-12-07 21:11:39" itemprop="dateCreated datePublished" datetime="2018-12-07T21:11:39+08:00">2018-12-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/" itemprop="url" rel="index"><span itemprop="name">C/C++</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/C-C/Effective-Modern-C/" itemprop="url" rel="index"><span itemprop="name">Effective Modern C++</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>有时候我们会出现一个线程等待另一个线程完成的情况。例如要等待某个线程完成对数据结构的初始化、等待计算阶段的完成亦或是等待传感器获取到数据。通常我们为了实现线程间互相通信时，会使用条件变量（condition
+variable，condvar）。有如下定义：检测条件的任务被称为<strong>检测任务（detecting
+task）</strong>；对条件作出反应的任务被称为<strong>反应任务（reacting
+task）</strong>。<br />
+它们的运行策略也很简单：反应任务等待条件变量满足，检测任务在事件发生时通知条件变量。下面介绍C++中几个实现进程同步的方式。
+<span id="more"></span> # 基于条件变量（condvar）的方式</p>
+<p>如下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">std::condition_variable cv;</span><br><span class="line"></span><br><span class="line">std::mutex m;</span><br></pre></td></tr></table></figure>
+<p>检测任务的代码很简单：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">... <span class="comment">// 检测事件</span></span><br><span class="line"></span><br><span class="line">cv.<span class="built_in">notify_one</span>(); <span class="comment">// 告知反应任务有事件发生 </span></span><br></pre></td></tr></table></figure>
+<p>如果有若干的反应任务要被通知，那么应该使用notify_all，但是这个无伤大雅，这里假设只有一个反应任务。</p>
+<p>而反应任务的代码比较复杂了，因为在调用wait等待条件变量时，必要通过std::unique_lock对象进行互斥（在等待一个条件变量之前通常要进行互斥，这是线程库中通用的做法。通过std::unique_lock对象互斥也是C++11API的组成）。下面是理论上反应任务的实现：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>; <span class="comment">// 互斥锁定</span></span><br><span class="line"></span><br><span class="line">cv.<span class="built_in">wait</span>(lk); <span class="comment">// 等待通知。但这样的写法是有问题的</span></span><br></pre></td></tr></table></figure>
+<p>这段代码有代码异味（code
+smell）：即使代码是正常工作的，但是某些方面有一些不正常。这个异味是来自对mutex的使用上。mutex被用在控制访问分享的数据上，但是检测任务和反应任务都有可能不需要mutex。例如，检测任务可能负责初始化一个全局的数据结构，然后转向反应任务使用这个数据结构。如果检测任务在这个全局的数据结构初始化之后再也不访问这个数据结构，并且如果反应任务在检测任务告知自身已经准备好之前不会访问这个全局数据结构，那么这两个线程就会自觉隔离开自己，而不需要使用mutex。条件变量的方法是用在一个线程与另一个线程之后运行时使用的。<br />
+这里有另外两个问题你需要注意：</p>
+<ul>
+<li><strong>如果检测任务在反应任务执行wait之前通知条件变量，那么反应任务将会被挂起。</strong>为了条件变量能唤醒一个任务，那么另一个任务必须已经在等待条件变量。如果检测任务碰巧在反应任务执行wait之前进行通知，那么反应任务将会错过这个通知，并且有可能永远等待下去。</li>
+<li><strong>由于虚假唤醒（spurious
+wakeup）带来的wait发生问题。</strong>在许多语言的线程API中都可能出现虚假唤醒的问题，也就是条件变量会在没有被通知的情况下被唤醒。恰当的代码都是通过等待的确认条件真实发生之后再发生唤醒。C++确认条件变量很简单，可以使用lambda（或者其它函数对象）传递给wait以测试被等待的条件。wait代码如下：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cv.<span class="built_in">wait</span>(lk, []&#123; 返回是否事件发生; &#125;); </span><br></pre></td></tr></table></figure>
+使用这个功能的前提是能判断正在等待的条件是否为真。但是在我们之前的例子中，都是判断一个事件是否发生，反应线程可能没有办法知道是否事件已经发生。这也就是为什么要wait一个条件变量的原因。</li>
+</ul>
+<h1 id="基于flag的方式">基于flag的方式</h1>
+<p>这个例子使用了基于flag的方式： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">bool</span>&gt; <span class="title">flag</span><span class="params">(<span class="literal">false</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">... <span class="comment">// 检测到事件发生</span></span><br><span class="line"></span><br><span class="line">flag = <span class="literal">true</span>; <span class="comment">// 告知反应任务</span></span><br></pre></td></tr></table></figure>
+反应线程简单的<strong>轮询（poll）</strong>这个flag，当这个flag赋完值，反应任务就知道等待的事件已经发生了：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(!flag);</span><br></pre></td></tr></table></figure>
+这个方法能避免所有基于条件变量设计带来的缺陷。这里没有必要使用mutex，而且如果检测任务在反应任务轮询之前就设置flag为true也没有问题，并且也不会发生虚假唤醒的问题。但是还是有问题，就是反应任务检测条件变量的代价比较高。上面的代码是使用的while，需要占用硬件资源，并且线程是一直在运行的。而使用wait则是硬件级的阻塞，不会占用系统资源，线程也被挂起。</p>
+<h1 id="基于条件变量和基于flag的结合">基于条件变量和基于flag的结合</h1>
+<p>上面两种方法都或多或少有一些问题，我们通常可以使用条件变量和基于flag结合的设计。flag被用于判断事件是否发生，但是对于flag的访问则是需要用mutex进行同步，因为mutex防止同时访问flag，对于flag只需要使用简单的bool就可以，不需要使用std::atomic，这在<a
+href="/2018/12/07/对并行使用stdatomic，对特殊内存使用volatile/">对并行使用stdatomic，对特殊内存使用volatile</a>中有具体的证明。之后检测任务将会看上去这样：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 检测任务</span></span><br><span class="line">std::condition_variable cv;</span><br><span class="line"></span><br><span class="line">std::mutex m;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">flag</span><span class="params">(<span class="literal">false</span>)</span></span>;</span><br><span class="line"></span><br><span class="line">... <span class="comment">// 检测事件的发生</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">g</span><span class="params">(m)</span></span>; <span class="comment">// 防止flag被同时访问</span></span><br><span class="line"></span><br><span class="line">	flag = <span class="literal">true</span>; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">cv.<span class="built_in">notify_one</span>(); <span class="comment">// 通知反应任务</span></span><br></pre></td></tr></table></figure></p>
+<p>反应任务的代码如下： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 反应任务</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">lk</span><span class="params">(m)</span></span>;</span><br><span class="line"></span><br><span class="line">	cv.<span class="built_in">wait</span>(lk, []&#123; <span class="keyword">return</span> flag; &#125;); <span class="comment">// 如果flag为真，则对mutex上锁，并且解除阻塞，否则就不锁定mutex并且阻塞线程。 </span></span><br><span class="line"></span><br><span class="line">	... <span class="comment">// 对检测到的事件的反应</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这个方法避免了我们之前提到的使用while时会占用系统资源的问题。无论反应任务是否在检测任务通知之前wait，它都可以正常工作，并且无论是否发生了虚假唤醒都可以，而且还不需要轮询。但是这里还有一个问题，检测任务和反应任务是通过一个非常稀奇古怪的方式通信。条件变量通知反应任务，其等待的事件可能已经发生，反应任务必须检查这个等待的事件是否已经发生。设置flag就是为了告诉反应任务事件真的已经发生了，但是检测任务还要通过通知条件变量让反应任务醒来并且检查flag。这个方法似乎不是非常干净。</p>
+<h1 id="基于future的方式">基于future的方式</h1>
+<p>其中一个解决方法就是通过在反应任务的future使用wait以避免使用条件变量、mutex以及flag。这个方法可能听上去比较特别，因为在<a
+href="/2018/12/02/请注意不同的线程处理方式的析构函数行为/">请注意不同的线程处理方式的析构函数行为</a>中我们说到future是调用者与被调用通信信道的接收终端，但是这里没有调用者和被调用者这样一层关系。不过在这一篇文章中还说到，通信信道发送终端是std::promise。我们可以利用这样的通信信道，在检测任务和反应任务之间进行通信。</p>
+<p>具体的设计非常简单。检测任务有一个std::promise对象（也就是通信信道的写终端），反应任务有一个对应的future。当检测任务检测到寻找的事件发生之后，它将设置std::promise（例如写入通信信道中）。与此同时，反应任务在future上wait，这个wait阻塞了反应任务，直到std::promise被设置。</p>
+<p>std::promise和future（包括std::future、std::shared_future等在内）都需要指定一个类型参数，这个类型参数指定了通信信道中传递的数据的类型。但是在上面的例子中，很显然没有数据被传递；反应任务则设置future。我们要解决的是std::promise和future模板的类型参数，这个类型参数可以代表没有数据通过通信信道传输，这个类型就是void。因此检测任务将会使用std::promise，反应任务就会使用std::future或者std::shared_future。当检测任务检测的事件发生，它将会设置std::promise，反应任务则会等待future。尽管反应任务不会从检测任务收到任何数据，但是通信信道还是会让反应任务在检测任务“写”了void类型数据时知道，方法就是通过调用std::promise中的set_value方法。<br />
+所以给出代码： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">std::promise&lt;<span class="type">void</span>&gt; p;</span><br></pre></td></tr></table></figure></p>
+<p>检测任务的代码： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">... <span class="comment">// 检测事件</span></span><br><span class="line"></span><br><span class="line">p.<span class="built_in">set_value</span>(); <span class="comment">// 通知反应任务</span></span><br></pre></td></tr></table></figure></p>
+<p>反应任务的代码如下： <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...<span class="comment">// 准备反应</span></span><br><span class="line"></span><br><span class="line">p.<span class="built_in">get_future</span>().<span class="built_in">wait</span>(); <span class="comment">// 等待p对应的future</span></span><br></pre></td></tr></table></figure>
+和使用flag的方法一样，这里没有使用mutex；无论检测任务是否在反应任务wait之前设置std::promise，都会正常工作；并且对虚假唤醒有免疫。和基于条件变量的方法一样，反应任务在wait之后是真实地被阻塞，从而在等待时不消耗系统资源。</p>
+<p>然而这种方法也不是非常完美地。当然，基于future的方式解决了其它方式的问题，但是它还有一些问题。例如，<a
+href="/2018/12/02/请注意不同的线程处理方式的析构函数行为/">请注意不同的线程处理方式的析构函数行为</a>说到std::promise和future中间还有一个分享状态，并且分享状态通常是动态分配空间，因此你需要假设使用基于future的方式的设计要在分配和销毁的操作上有所消耗。</p>
+<p>更重要的是，std::promise可能只能被设置一次。std::promise和future之间的通信信道是一个一次性的机制：不能被多次使用。这是一个和基于条件变量和基于flag的方式不同之处，这两者都可以被多次使用。（条件变量可以一直通知下去，而flag可以清除了再设置）。</p>
+<p>这个一次性的限制可能没有你想象的那么制约你。假设你想要创建一个处于挂起状态的系统线程，也就是说你想要避免与线程创建相关的所有开销，以至于当你在线程上执行某些东西时，普通线程创建延迟可以避免。或者你可能想创建一个挂起状态的线程以至于你可以在让它运行之前进行配置。这样的配置可能包括设置它的优先级或者核心密切度。C++的并发API没有办法做到这些，但是std::thread对象提供了native_handle成员函数，这个函数的结果可以让你访问系统依赖的的线程API（通常是POSIX或者Windows线程）。底层API通常可以实现配置线程的特点，例如优先级和依赖度。</p>
+<p>假设你希望挂起一个线程只一次（创建之后，运行线程上函数之前），使用void的future是一个合理的选择。下面是大概的代码：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">std::promise&lt;<span class="type">void</span>&gt; p;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">react</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">detect</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="function">std::thread <span class="title">t</span><span class="params">([] &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">		p.get_future().wait();</span></span></span><br><span class="line"><span class="params"><span class="function">		react();</span></span></span><br><span class="line"><span class="params"><span class="function">	&#125;)</span></span>;</span><br><span class="line"></span><br><span class="line">	... <span class="comment">// 运行到这里时，t是挂起状态的</span></span><br><span class="line"></span><br><span class="line">	p.<span class="built_in">set_value</span>();</span><br><span class="line"></span><br><span class="line">	t.<span class="built_in">join</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+因为保证t在跳出detect函数作用域时是不可连接是非常重要的，上面代码如果在“...”处发生异常就会导致跳出作用域时不是可连接的，所以要使用RAII类（具体讲解参见：<a
+href="/2018/11/22/确保跳出作用域时std::thread是不可连接的（unjoinable）/">确保跳出作用域时std::thread是不可连接的（unjoinable）</a>）。代码大致如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">detect</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="function">ThreadRAII <span class="title">tr</span><span class="params">( <span class="comment">// 使用了RAII对象</span></span></span></span><br><span class="line"><span class="params"><span class="function">		std::thread([]&#123; p.get_future().wait();</span></span></span><br><span class="line"><span class="params"><span class="function">			react(); </span></span></span><br><span class="line"><span class="params"><span class="function">		&#125;),</span></span></span><br><span class="line"><span class="params"><span class="function"></span></span></span><br><span class="line"><span class="params"><span class="function">		ThreadRAII::DtorAction::join</span></span></span><br><span class="line"><span class="params"><span class="function">	)</span></span>;</span><br><span class="line"></span><br><span class="line">	... <span class="comment">// tr中的线程在这里是挂起状态的</span></span><br><span class="line"></span><br><span class="line">	p.<span class="built_in">set_value</span>(); <span class="comment">// 将tr中的线程开始运行 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码还是有一些要注意的地方。在“...”的地方，如果发生了异常，set_value将会永远不调用。这也就是说，lambda中的wait将会永远不返回。也就是说，运行lambda的线程永远不会结束，而RAII对象tr配置的join决定了tr在销毁时会执行join。换句话说，如果一个异常被忽略，函数将会挂起，因为tr的析构永远不会结束。</p>
+<p>当然有很多种方法可以解决这个问题，这里请读者自行思考。根据《Effective
+Modern C++》作者提示，可以访问<a
+target="_blank" rel="noopener" href="http://scottmeyers.blogspot.com/2013/12/threadraii-thread-suspension-trouble.html">作者博客问题页</a>进行考虑。这里将展示如何使用非RAII的代码挂起然后唤醒一个反应任务。关键是在反应任务中使用std::shared_future替换std::future：std::future的share成员函数将分享状态的拥有权给由share成员函数创建的std::shared_future。唯一的细微之处是每个反应线程需要各自拥有引用了分享状态的std::shared_future。所以lambda要按值捕获由share取得的std::shared_future：
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">std::promise&lt;<span class="type">void</span>&gt; p;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">detect</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">auto</span> sf = p.<span class="built_in">get_future</span>().<span class="built_in">share</span>();</span><br><span class="line"></span><br><span class="line">	std::vector&lt;std::thread&gt; vt; <span class="comment">// 反应线程的容器</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; ++i)</span><br><span class="line">	&#123;</span><br><span class="line">		vt.<span class="built_in">emplace_back</span>([sf]&#123; <span class="comment">// 按值捕获，捕获std::shared_future</span></span><br><span class="line">			sf.<span class="built_in">wait</span>();</span><br><span class="line">			<span class="built_in">react</span>();</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	p.<span class="built_in">set_value</span>();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span>(<span class="keyword">auto</span>&amp; t : vt)</span><br><span class="line">	&#123;</span><br><span class="line">		t.<span class="built_in">join</span>();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><strong>总结</strong></p>
+<ul>
+<li>在简单的事件通信中，基于条件变量（condvar-based）的设计需要一个多余的mutex在检测任务和反应任务的进度关系上做限制，并且需要反应任务确认事件真实发生（防止虚假唤醒）。</li>
+<li>使用基于flag的设计可以避免上述基于条件变量的设计拥有的问题，但是要基于轮询，而不是使用阻塞。</li>
+<li>条件变量和flag可以一起被使用，但是这样的通信机制有一些生硬（反应任务需要检查自己是否等待的事件发生）。</li>
+<li>使用std::promise以及future的通信机制解决了上述问题。但是如果使用std::future时通信时，因为分享状态在堆上的原因，这种通信是一次性的。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/12/02/%E8%AF%B7%E6%B3%A8%E6%84%8F%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E8%A1%8C%E4%B8%BA/" rel="prev" title="请注意不同的线程处理方式的析构函数行为">
+                  <i class="fa fa-angle-left"></i> 请注意不同的线程处理方式的析构函数行为
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/12/09/%E5%AF%B9%E5%B9%B6%E8%A1%8C%E4%BD%BF%E7%94%A8std_atomic%EF%BC%8C%E5%AF%B9%E7%89%B9%E6%AE%8A%E5%86%85%E5%AD%98%E4%BD%BF%E7%94%A8volatile/" rel="next" title="对并行使用std::atomic，对特殊内存使用volatile">
+                  对并行使用std::atomic，对特殊内存使用volatile <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">CrazySpy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
